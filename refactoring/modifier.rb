@@ -1,4 +1,6 @@
 require File.expand_path('lib/combiner',File.dirname(__FILE__))
+require File.expand_path('lib/core_extensions/float',File.dirname(__FILE__))
+require File.expand_path('lib/core_extensions/string',File.dirname(__FILE__))
 require 'csv'
 require 'date'
 
@@ -18,19 +20,10 @@ def latest(name)
   files.last
 end
 
-class String
-	def from_german_to_f
-		self.gsub(',', '.').to_f
-	end
-end
-
-class Float
-	def to_german_s
-		self.to_s.gsub('.', ',')
-	end
-end
-
 class Modifier
+  # Actually monkey-patch Float and String
+  Float.include CoreExtensions::Float
+  String.include CoreExtensions::String
 
 	KEYWORD_UNIQUE_ID = 'Keyword Unique ID'
 	LAST_VALUE_WINS = ['Account ID', 'Account Name', 'Campaign', 'Ad Group', 'Keyword', 'Keyword Type', 'Subid', 'Paused', 'Max CPC', 'Keyword Unique ID', 'ACCOUNT', 'CAMPAIGN', 'BRAND', 'BRAND+CATEGORY', 'ADGROUP', 'KEYWORD']
