@@ -42,7 +42,7 @@ class Modifier
 
 	# Options for file read/write
 	DEFAULT_CSV_OPTIONS = { col_sep: "\t", headers: :first_row }
-	EXTENDED_CSV_OPTIONS = DEFAULT_CSV_OPTIONS.merge({ :row_sep => '\r\n' })
+	EXTENDED_CSV_OPTIONS = DEFAULT_CSV_OPTIONS.merge({ :row_sep => "\r\n" })
 
 	def initialize(saleamount_factor, cancellation_factor)
 		@saleamount_factor = saleamount_factor
@@ -74,7 +74,7 @@ class Modifier
 		file_index = 0
 		file_name = output.gsub('.txt', '')
 		while not done do
-			CSV.open(file_name + "_#{file_index}.txt", 'wb', EXTENDED_CSV_OPTIONS) do |csv|
+			CSV.open("modifiertest_#{file_index}.txt", 'wb', EXTENDED_CSV_OPTIONS) do |csv|
 				headers_written = false
 				line_count = 0
 				while line_count < LINES_PER_FILE
