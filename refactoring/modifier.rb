@@ -19,37 +19,27 @@ class Modifier
   end
 
   def modify(output_file, input_file)
-    input_file = FileUtils.new(input_file).sort('Clicks')
-    input_enumerator = lazy_read(input_file)
-
-    merger = Enumerator.new do |yielder|
-      while true
-        begin
-          row = input_enumerator.next
-          row_hash = row_to_hash(row)
-          yielder.yield(modify_values(row_hash))
-        rescue StopIteration
-          break
-        end
-      end
-    end
+    # sort file by clicks column value
+    sorted_file = FileUtils.new(input_file).sort('Clicks')
+    # lazy read and modify values
+    modified_rows = read_modify_rows(sorted_file)
 
     done = false
     file_index = 0
     file_name = output_file.gsub('.txt', '')
     while not done do
-      CSV.open("modifiertest_#{file_index}.txt", 'wb', EXTENDED_CSV_OPTIONS) do |csv|
+      CSV.open(file_name + "_#{file_index}.txt", 'wb', EXTENDED_CSV_OPTIONS) do |csv|
         headers_written = false
         line_count = 0
         while line_count < LINES_PER_FILE
           begin
-            merged = merger.next
+            row_hash = modified_rows.next
             if not headers_written
-              csv << merged.keys
+              csv << row_hash.headers
               headers_written = true
               line_count +=1
             end
-            csv << merged
+            csv << row_hash
             line_count +=1
           rescue StopIteration
             done = true
@@ -63,38 +53,30 @@ class Modifier
 
   private
 
-  def modify_values(hash)
+  def modify_values(row)
     LAST_REAL_VALUE_WINS.each do |key|
-      value = hash[key]
-      hash[key] = (value.nil? or value.to_s == '0' or value == '') ? nil : value
+      value = row[key]
+      row[key] = (value.nil? or value.to_s == '0' or value == '') ? nil : value
     end
     INT_VALUES.each do |key|
-      hash[key] = hash[key].to_s
+      row[key] = row[key].to_s
     end
     FLOAT_VALUES.each do |key|
-      hash[key] = hash[key].from_german_to_f.to_german_s
+      row[key] = row[key].from_german_to_f.to_german_s
     end
     COMMISSIONS.each do |key|
-      hash[key] = (@cancellation_factor * hash[key].from_german_to_f).to_german_s
+      row[key] = (@cancellation_factor * row[key].from_german_to_f).to_german_s
     end
     COMMISSIONS_VALUES.each do |key|
-      hash[key] = (@cancellation_factor * @saleamount_factor * hash[key].from_german_to_f).to_german_s
+      row[key] = (@cancellation_factor * @saleamount_factor * row[key].from_german_to_f).to_german_s
     end
-    hash
+    row
   end
 
-  def row_to_hash(row)
-    result = {}
-    row.headers.each do |key|
-      result[key] = row.nil? ? nil : row[key]
-    end
-    result
-  end
-
-  def lazy_read(file)
+  def read_modify_rows(file)
     Enumerator.new do |yielder|
       CSV.foreach(file, DEFAULT_CSV_OPTIONS) do |row|
-        yielder.yield(row)
+        yielder.yield(modify_values(row))
       end
     end
   end
