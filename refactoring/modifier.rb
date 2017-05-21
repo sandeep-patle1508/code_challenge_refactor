@@ -2,30 +2,15 @@ require_relative 'lib/combiner'
 require_relative 'lib/core_extensions/float'
 require_relative 'lib/core_extensions/string'
 require_relative 'lib/modifiers/constant'
+require_relative 'lib/file_utils'
 require 'csv'
 require 'date'
 
-def latest(name)
-	files = Dir["#{ ENV['HOME'] }/workspace/*#{name}*.txt"]
-
-	files.sort_by! do |file|
-		last_date = /\d+-\d+-\d+_[[:alpha:]]+\.txt$/.match file
-		last_date = last_date.to_s.match /\d+-\d+-\d+/
-
-		date = DateTime.parse(last_date.to_s)
-		date
-	end
-
-	throw RuntimeError if files.empty?
-
-	files.last
-end
-
 class Modifier
-	# Monkey-patch Float and String
+	# monkey-patch Float and String
 	Float.include CoreExtensions::Float
 	String.include CoreExtensions::String
-	# Include constant
+	# include constant
 	include Modifiers::Constant
 
 	def initialize(saleamount_factor, cancellation_factor)
@@ -33,10 +18,9 @@ class Modifier
 		@cancellation_factor = cancellation_factor
 	end
 
-	def modify(output, input)
-		input = sort(input)
-
-		input_enumerator = lazy_read(input)
+	def modify(output_file, input_file)
+		input_file = FileUtils.new(input_file).sort('Clicks')
+		input_enumerator = lazy_read(input_file)
 
 		combiner = Combiner.new do |value|
 			value[KEYWORD_UNIQUE_ID]
@@ -83,14 +67,6 @@ class Modifier
 
 	private
 
-	def combine(merged)
-		result = []
-		merged.each do |_, hash|
-			result << combine_values(hash)
-		end
-		result
-	end
-
 	def combine_values(hash)
 		LAST_VALUE_WINS.each do |key|
 			hash[key] = hash[key].last
@@ -131,38 +107,12 @@ class Modifier
 		result
 	end
 
-
-
-	def parse(file)
-		CSV.read(file, DEFAULT_CSV_OPTIONS)
-	end
-
 	def lazy_read(file)
 		Enumerator.new do |yielder|
 			CSV.foreach(file, DEFAULT_CSV_OPTIONS) do |row|
 				yielder.yield(row)
 			end
 		end
-	end
-
-	def write(content, headers, output)
-		CSV.open(output, 'wb', EXTENDED_CSV_OPTIONS) do |csv|
-			csv << headers
-			content.each do |row|
-				csv << row
-			end
-		end
-	end
-
-	public
-	def sort(file)
-		output = "#{file}.sorted"
-		content_as_table = parse(file)
-		headers = content_as_table.headers
-		index_of_key = headers.index('Clicks')
-		content = content_as_table.sort_by { |a| -a[index_of_key].to_i }
-		write(content, headers, output)
-		return output
 	end
 end
 
