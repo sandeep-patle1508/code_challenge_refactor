@@ -13,33 +13,40 @@ class Modifier
   # include constant
   include Modifiers::Constant
 
-  def initialize(saleamount_factor, cancellation_factor)
-    @saleamount_factor = saleamount_factor
+  def initialize(input_file, sale_amount_factor, cancellation_factor)
+    @input_file = input_file
+    @sale_amount_factor = sale_amount_factor
     @cancellation_factor = cancellation_factor
   end
 
-  def modify(output_file, input_file)
+  def modify
     # sort file by clicks column value
-    sorted_file = FileUtils.new(input_file).sort('Clicks')
-    # lazy read and modify values
-    modified_rows = read_modify_rows(sorted_file)
+    sorted_file_enum = FileUtils.new(@input_file).sort('Clicks')
+    modified_rows_enum = read_modify_rows(sorted_file_enum)
+    generate_output_files(modified_rows_enum)
+  end
 
+  private
+  # write modified rows into new file
+  def generate_output_files(rows_enum)
     done = false
     file_index = 0
-    file_name = output_file.gsub('.txt', '')
+    file_name = @input_file.gsub('.txt', '')
+
     while not done do
       CSV.open(file_name + "_#{file_index}.txt", 'wb', EXTENDED_CSV_OPTIONS) do |csv|
-        headers_written = false
-        line_count = 0
+        # insert header row
+        begin
+          row = rows_enum.peek
+          csv << row.headers
+        rescue StopIteration
+          break
+          done = true
+        end
+        line_count = 1
         while line_count < LINES_PER_FILE
           begin
-            row_hash = modified_rows.next
-            if not headers_written
-              csv << row_hash.headers
-              headers_written = true
-              line_count +=1
-            end
-            csv << row_hash
+            csv << rows_enum.next
             line_count +=1
           rescue StopIteration
             done = true
@@ -50,9 +57,7 @@ class Modifier
       end
     end
   end
-
-  private
-
+  # modify values
   def modify_values(row)
     LAST_REAL_VALUE_WINS.each do |key|
       value = row[key]
@@ -68,11 +73,11 @@ class Modifier
       row[key] = (@cancellation_factor * row[key].from_german_to_f).to_german_s
     end
     COMMISSIONS_VALUES.each do |key|
-      row[key] = (@cancellation_factor * @saleamount_factor * row[key].from_german_to_f).to_german_s
+      row[key] = (@cancellation_factor * @sale_amount_factor * row[key].from_german_to_f).to_german_s
     end
     row
   end
-
+  # lazy read and modify values
   def read_modify_rows(file)
     Enumerator.new do |yielder|
       CSV.foreach(file, DEFAULT_CSV_OPTIONS) do |row|
@@ -82,10 +87,7 @@ class Modifier
   end
 end
 
-modified = input = FileUtils.new('project_2012-07-27_2012-10-10_performancedata').latest
-modification_factor = 1
-cancellaction_factor = 0.4
-modifier = Modifier.new(modification_factor, cancellaction_factor)
-modifier.modify(modified, input)
+latest_file = FileUtils.new('project_2012-07-27_2012-10-10_performancedata').latest
+Modifier.new(latest_file, 1, 0.4).modify
 
 puts 'DONE modifying'
