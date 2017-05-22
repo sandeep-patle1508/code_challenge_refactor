@@ -24,6 +24,9 @@
 - I have removed the use of Combiner class to combine the files since here we have only one input file and we do not need to combine it. Combiner class is useful when we need to combine more than two files on the basis of a given column.
 - Also, we can avoid creating sorted file by creating array of objects for each row and then perform sort operation but, as mentioned in the email we should not change the output of script. Original script was resulting two output files one for sorted and other for modified values. I maintained the same ouput behaviour.
 
+### Unbundle 
+- git clone code_challenge_refactor.bundle -b master repo
+
 ### To run the test cases for file modifer class
 - rspec spec/modifier/file_modifier_spec.rb
 
