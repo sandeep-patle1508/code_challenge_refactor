@@ -1,5 +1,5 @@
 # Constant values used in modifier
-module Modifiers
+module Modifier
   module Constant
     # Column names
     KEYWORD_UNIQUE_ID = 'Keyword Unique ID'

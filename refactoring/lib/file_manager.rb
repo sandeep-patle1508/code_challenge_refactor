@@ -1,10 +1,10 @@
 # input:
-# - filename
+#   - filename
 # output:
-# - latest: get latest file on the basis of date from a folder
-# - sort: sort rows  by given key and write output into a new file
+#   - latest: get latest file on the basis of date from a folder
+#   - sort: sort rows  by given key and write output into a new file
 
-class FileUtils
+class FileManager
   # options for file read/write
   DEFAULT_CSV_OPTIONS = { col_sep: "\t", headers: :first_row }
   EXTENDED_CSV_OPTIONS = DEFAULT_CSV_OPTIONS.merge({ :row_sep => "\r\n" })
@@ -13,7 +13,7 @@ class FileUtils
     @file = file
   end
 
-  # sort rows  by given key and write output into a new file
+  # sort rows by given key and write output into a new file.
   def sort key
     output = "#{@file}.sorted"
 
@@ -27,7 +27,7 @@ class FileUtils
     output
   end
 
-  # get latest file on the basis of date from a folder
+  # get latest file on the basis of date from a folder.
   def latest
     files = Dir["#{ ENV['HOME'] }/workspace/*#{@file}*.txt"]
 
