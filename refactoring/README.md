@@ -26,3 +26,5 @@
 
 ### To run the test cases for file modifer class
 - rspec spec/modifier/file_modifier_spec.rb
+
+###### Please find all sample input files in `sample_input_files` folder with in the root directory.
