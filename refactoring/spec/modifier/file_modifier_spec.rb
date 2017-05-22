@@ -1,12 +1,5 @@
 require_relative '../spec_helper'
-require_relative '../../lib/core_extensions/float'
-require_relative '../../lib/core_extensions/string'
-require_relative '../../lib/modifier/constant'
-require_relative '../../lib/file_manager'
 require_relative '../../lib/modifier/file_modifier'
-require 'csv'
-require 'date'
-
 
 describe FileModifier do
   let(:latest_file) { File.expand_path('../sample_files/project_2012-07-27_2012-10-10_sample.txt', File.dirname(__FILE__)) }

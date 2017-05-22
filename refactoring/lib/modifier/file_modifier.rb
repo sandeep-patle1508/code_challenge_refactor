@@ -5,6 +5,12 @@
 # output:
 #   - create a sort and modified file
 
+require_relative '../core_extensions/float'
+require_relative '../core_extensions/string'
+require_relative 'constant'
+require_relative '../file_manager'
+require 'csv'
+
 class FileModifier
   # monkey-patch Float and String class
   Float.include CoreExtensions::Float

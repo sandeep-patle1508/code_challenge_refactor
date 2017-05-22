@@ -4,6 +4,8 @@
 #   - latest: get latest file on the basis of date from a folder
 #   - sort: sort rows  by given key and write output into a new file
 
+require 'date'
+
 class FileManager
   # options for file read/write
   DEFAULT_CSV_OPTIONS = { col_sep: "\t", headers: :first_row }
